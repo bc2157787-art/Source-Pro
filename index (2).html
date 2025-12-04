@@ -1,0 +1,2469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SourcePro - Source from China Like a Pro</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: 'DM Sans', -apple-system, sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      min-height: 100vh;
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #f5d485 0%, #e8a849 50%, #d4943a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .glow-border {
+      position: relative;
+    }
+    
+    .glow-border::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      background: linear-gradient(135deg, #e8a849 0%, transparent 50%, #e8a849 100%);
+      border-radius: inherit;
+      z-index: -1;
+      opacity: 0.5;
+    }
+    
+    .card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(232, 168, 73, 0.15);
+    }
+    
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.6s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .shine {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .shine::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        to right,
+        transparent 0%,
+        rgba(255,255,255,0.1) 50%,
+        transparent 100%
+      );
+      transform: rotate(30deg);
+      animation: shine 3s infinite;
+    }
+    
+    @keyframes shine {
+      0% { transform: translateX(-100%) rotate(30deg); }
+      100% { transform: translateX(100%) rotate(30deg); }
+    }
+    
+    .slide-in {
+      animation: slideIn 0.4s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    input, textarea {
+      font-family: inherit;
+    }
+    
+    button {
+      font-family: inherit;
+      cursor: pointer;
+    }
+    
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #1a1a1a;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: #444;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    
+    // Icons as simple SVG components
+    const Icon = ({ name, size = 24, color = 'currentColor', fill = 'none', strokeWidth = 2, style = {} }) => {
+      const icons = {
+        search: <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />,
+        shield: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></>,
+        package: <><path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></>,
+        trending: <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" /></>,
+        users: <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></>,
+        globe: <><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" /></>,
+        chevronRight: <polyline points="9 18 15 12 9 6" />,
+        chevronDown: <polyline points="6 9 12 15 18 9" />,
+        star: <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill={fill} />,
+        check: <polyline points="20 6 9 17 4 12" />,
+        arrowRight: <><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></>,
+        zap: <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />,
+        fileText: <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></>,
+        messageSquare: <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />,
+        truck: <><rect x="1" y="3" width="15" height="13" /><polygon points="16 8 20 8 23 11 23 16 16 16 16 8" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" /></>,
+        clipboard: <><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></>,
+        lightbulb: <><path d="M9 18h6M10 22h4M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0018 8 6 6 0 006 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 018.91 14" /></>,
+        box: <><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></>,
+        play: <polygon points="5 3 19 12 5 21 5 3" fill={fill} />,
+        home: <><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></>,
+        barChart: <><line x1="12" y1="20" x2="12" y2="10" /><line x1="18" y1="20" x2="18" y2="4" /><line x1="6" y1="20" x2="6" y2="16" /></>,
+        settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" /></>,
+        bell: <><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 01-3.46 0" /></>,
+        x: <><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></>,
+        mapPin: <><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" /></>,
+        clock: <><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></>,
+        dollarSign: <><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></>,
+        award: <><circle cx="12" cy="8" r="7" /><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" /></>,
+        send: <><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></>,
+        image: <><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></>,
+        upload: <><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></>,
+        filter: <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />,
+        menu: <><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></>,
+        externalLink: <><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></>,
+        shoppingCart: <><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" /></>,
+        plus: <><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></>,
+        minus: <line x1="5" y1="12" x2="19" y2="12" />,
+        eye: <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></>,
+        download: <><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></>,
+        refresh: <><polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" /><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" /></>,
+        layers: <><polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" /></>,
+        target: <><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></>,
+        briefcase: <><rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" /></>,
+        headphones: <><path d="M3 18v-6a9 9 0 0118 0v6" /><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z" /></>,
+        book: <><path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" /></>,
+        video: <><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" /></>,
+        calendar: <><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></>,
+        heart: <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />,
+        thumbsUp: <><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3" /></>,
+        coffee: <><path d="M18 8h1a4 4 0 010 8h-1" /><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z" /><line x1="6" y1="1" x2="6" y2="4" /><line x1="10" y1="1" x2="10" y2="4" /><line x1="14" y1="1" x2="14" y2="4" /></>,
+        compass: <><circle cx="12" cy="12" r="10" /><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" /></>,
+        tool: <><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" /></>,
+        handshake: <><path d="M20.42 4.58a5.4 5.4 0 00-7.65 0l-.77.78-.77-.78a5.4 5.4 0 00-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z" /></>,
+        info: <><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></>,
+      };
+      
+      return (
+        <svg 
+          width={size} 
+          height={size} 
+          viewBox="0 0 24 24" 
+          fill={fill}
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={style}
+        >
+          {icons[name]}
+        </svg>
+      );
+    };
+    
+    // Main App Component
+    function App() {
+      const [currentPage, setCurrentPage] = useState('landing');
+      const [onboardingStep, setOnboardingStep] = useState(1);
+      const [selectedSupplier, setSelectedSupplier] = useState(null);
+      
+      const navigate = (page) => {
+        setCurrentPage(page);
+        window.scrollTo(0, 0);
+      };
+      
+      return (
+        <div>
+          {currentPage === 'landing' && <LandingPage navigate={navigate} />}
+          {currentPage === 'suppliers' && <SuppliersPage navigate={navigate} setSelectedSupplier={setSelectedSupplier} />}
+          {currentPage === 'services' && <ServicesPage navigate={navigate} />}
+          {currentPage === 'training' && <TrainingPage navigate={navigate} />}
+          {currentPage === 'pricing' && <PricingPage navigate={navigate} />}
+          {currentPage === 'about' && <AboutPage navigate={navigate} />}
+          {currentPage === 'onboarding' && <OnboardingPage navigate={navigate} step={onboardingStep} setStep={setOnboardingStep} />}
+          {currentPage === 'dashboard' && <DashboardPage navigate={navigate} setSelectedSupplier={setSelectedSupplier} />}
+          {currentPage === 'supplier' && <SupplierDetailPage navigate={navigate} supplier={selectedSupplier} />}
+        </div>
+      );
+    }
+    
+    // Navigation Component
+    function Navigation({ navigate, currentPage }) {
+      return (
+        <nav style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '20px 48px',
+          borderBottom: '1px solid #1a1a1a',
+          background: 'rgba(10, 10, 10, 0.95)',
+          backdropFilter: 'blur(20px)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 100
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => navigate('landing')}>
+            <div style={{
+              width: 36,
+              height: 36,
+              background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+              borderRadius: 8,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <Icon name="globe" size={20} color="#0a0a0a" strokeWidth={2.5} />
+            </div>
+            <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.5px' }}>
+              Source<span className="gradient-text">Pro</span>
+            </span>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {[
+              { id: 'landing', label: 'Discover' },
+              { id: 'suppliers', label: 'Suppliers' },
+              { id: 'services', label: 'Services' },
+              { id: 'training', label: 'Training' },
+              { id: 'pricing', label: 'Pricing' },
+              { id: 'about', label: 'About' },
+            ].map((item) => (
+              <div 
+                key={item.id}
+                onClick={() => navigate(item.id)}
+                style={{ 
+                  padding: '8px 16px',
+                  cursor: 'pointer',
+                  color: currentPage === item.id ? '#fff' : '#666',
+                  borderBottom: currentPage === item.id ? '2px solid #e8a849' : '2px solid transparent',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {item.label}
+              </div>
+            ))}
+          </div>
+          
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button onClick={() => navigate('dashboard')} style={{
+              padding: '10px 20px',
+              background: 'transparent',
+              border: '1px solid #333',
+              color: '#fff',
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 500
+            }}>
+              Log In
+            </button>
+            <button onClick={() => navigate('onboarding')} style={{
+              padding: '10px 20px',
+              background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+              border: 'none',
+              color: '#0a0a0a',
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 600
+            }}>
+              Get Started
+            </button>
+          </div>
+        </nav>
+      );
+    }
+    
+    // Footer Component
+    function Footer({ navigate }) {
+      return (
+        <footer style={{
+          padding: '60px 48px 40px',
+          borderTop: '1px solid #1a1a1a',
+          background: '#0a0a0a'
+        }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', gap: 48, marginBottom: 48 }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 16 }}>
+                  <div style={{
+                    width: 32,
+                    height: 32,
+                    background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+                    borderRadius: 6,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <Icon name="globe" size={18} color="#0a0a0a" strokeWidth={2.5} />
+                  </div>
+                  <span style={{ fontSize: 18, fontWeight: 600 }}>SourcePro</span>
+                </div>
+                <p style={{ color: '#666', fontSize: 14, lineHeight: 1.7, maxWidth: 280 }}>
+                  Your trusted partner for sourcing products from China. We connect you with verified factories and handle everything in between.
+                </p>
+              </div>
+              
+              {[
+                { title: 'Platform', links: ['Product Discovery', 'Supplier Network', 'Services', 'Pricing'] },
+                { title: 'Resources', links: ['Training Academy', 'Blog', 'Case Studies', 'Help Center'] },
+                { title: 'Company', links: ['About Us', 'Careers', 'Press', 'Contact'] },
+                { title: 'Legal', links: ['Privacy Policy', 'Terms of Service', 'Cookie Policy'] },
+              ].map((col, i) => (
+                <div key={i}>
+                  <h4 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>{col.title}</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {col.links.map((link, j) => (
+                      <a key={j} href="#" style={{ color: '#666', fontSize: 13, textDecoration: 'none' }}>{link}</a>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div style={{ borderTop: '1px solid #1a1a1a', paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: 13, color: '#666' }}>
+                © 2025 SourcePro. All rights reserved.
+              </div>
+              <div style={{ display: 'flex', gap: 16 }}>
+                {['Twitter', 'LinkedIn', 'Instagram', 'YouTube'].map(social => (
+                  <a key={social} href="#" style={{ color: '#666', fontSize: 13, textDecoration: 'none' }}>{social}</a>
+                ))}
+              </div>
+            </div>
+          </div>
+        </footer>
+      );
+    }
+    
+    // Landing Page
+    function LandingPage({ navigate }) {
+      const [activeTab, setActiveTab] = useState('discover');
+      const [selectedCategory, setSelectedCategory] = useState('all');
+      
+      const categories = [
+        { id: 'all', name: 'All Categories' },
+        { id: 'electronics', name: 'Electronics' },
+        { id: 'fashion', name: 'Fashion & Apparel' },
+        { id: 'home', name: 'Home & Garden' },
+        { id: 'beauty', name: 'Beauty & Personal' },
+      ];
+
+      const trendingProducts = [
+        { name: 'LED Strip Lights', margin: '340%', trend: '+45%', moq: 100 },
+        { name: 'Yoga Resistance Bands', margin: '280%', trend: '+32%', moq: 200 },
+        { name: 'Bamboo Utensil Set', margin: '220%', trend: '+28%', moq: 500 },
+        { name: 'Phone Ring Holder', margin: '450%', trend: '+52%', moq: 1000 },
+      ];
+
+      const suppliers = [
+        { name: 'Shenzhen Electronics Co.', rating: 4.9, orders: '2.4k', verified: true, response: '< 2hrs', specialty: 'Consumer Electronics' },
+        { name: 'Guangzhou Textile Ltd.', rating: 4.8, orders: '1.8k', verified: true, response: '< 4hrs', specialty: 'Apparel & Fabrics' },
+        { name: 'Yiwu Home Goods', rating: 4.7, orders: '3.1k', verified: true, response: '< 1hr', specialty: 'Home & Kitchen' },
+      ];
+      
+      return (
+        <div style={{ minHeight: '100vh' }}>
+          <Navigation navigate={navigate} currentPage="landing" />
+
+          {/* Hero Section */}
+          <section style={{
+            padding: '80px 48px 100px',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: '-200px',
+              right: '-100px',
+              width: 600,
+              height: 600,
+              background: 'radial-gradient(circle, rgba(232, 168, 73, 0.08) 0%, transparent 70%)',
+              pointerEvents: 'none'
+            }} />
+            
+            <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative' }}>
+              <div style={{ display: 'flex', gap: '80px', alignItems: 'center' }}>
+                <div style={{ flex: 1 }} className="fade-in">
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '6px 14px',
+                    background: 'rgba(232, 168, 73, 0.1)',
+                    borderRadius: 20,
+                    marginBottom: 24,
+                    border: '1px solid rgba(232, 168, 73, 0.2)'
+                  }}>
+                    <span className="pulse" style={{ width: 6, height: 6, background: '#4ade80', borderRadius: '50%' }} />
+                    <span style={{ fontSize: 13, color: '#e8a849' }}>500+ Verified Factories Connected</span>
+                  </div>
+                  
+                  <h1 style={{
+                    fontFamily: "'Playfair Display', serif",
+                    fontSize: 56,
+                    fontWeight: 700,
+                    lineHeight: 1.1,
+                    marginBottom: 24,
+                    letterSpacing: '-1px'
+                  }}>
+                    Source from China
+                    <br />
+                    <span className="gradient-text">Like a Pro</span>
+                  </h1>
+                  
+                  <p style={{
+                    fontSize: 18,
+                    color: '#888',
+                    lineHeight: 1.7,
+                    marginBottom: 40,
+                    maxWidth: 500
+                  }}>
+                    Access our network of vetted suppliers, AI-powered product discovery, 
+                    and full-service sourcing agents. Skip the middlemen. Get factory prices.
+                  </p>
+                  
+                  <div style={{ display: 'flex', gap: '16px', marginBottom: 48 }}>
+                    <button onClick={() => navigate('onboarding')} className="shine" style={{
+                      padding: '16px 32px',
+                      background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+                      border: 'none',
+                      color: '#0a0a0a',
+                      borderRadius: 10,
+                      fontSize: 15,
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      Start Free Trial <Icon name="arrowRight" size={18} />
+                    </button>
+                    <button style={{
+                      padding: '16px 32px',
+                      background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid #333',
+                      color: '#fff',
+                      borderRadius: 10,
+                      fontSize: 15,
+                      fontWeight: 500,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <Icon name="play" size={16} fill="#fff" color="#fff" /> Watch Demo
+                    </button>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '32px' }}>
+                    {[
+                      { value: '500+', label: 'Verified Factories' },
+                      { value: '$2.4M', label: 'Saved for Buyers' },
+                      { value: '98%', label: 'Satisfaction Rate' },
+                    ].map(stat => (
+                      <div key={stat.label}>
+                        <div style={{ fontSize: 28, fontWeight: 700, marginBottom: 4 }} className="gradient-text">{stat.value}</div>
+                        <div style={{ fontSize: 13, color: '#666' }}>{stat.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Hero Visual */}
+                <div style={{ flex: 1, position: 'relative' }}>
+                  <div className="glow-border card-hover" style={{
+                    background: 'linear-gradient(145deg, #141414, #0d0d0d)',
+                    borderRadius: 20,
+                    padding: 24,
+                    border: '1px solid #222'
+                  }}>
+                    <div style={{ display: 'flex', gap: '12px', marginBottom: 20 }}>
+                      {['discover', 'suppliers', 'tools'].map(tab => (
+                        <button
+                          key={tab}
+                          onClick={() => setActiveTab(tab)}
+                          style={{
+                            padding: '12px 24px',
+                            border: 'none',
+                            background: activeTab === tab ? 'rgba(232, 168, 73, 0.1)' : 'transparent',
+                            color: activeTab === tab ? '#e8a849' : '#666',
+                            fontSize: 14,
+                            fontWeight: 500,
+                            borderRadius: 8
+                          }}
+                        >
+                          {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    {activeTab === 'discover' && (
+                      <div>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          padding: '14px 18px',
+                          background: '#1a1a1a',
+                          borderRadius: 12,
+                          marginBottom: 20
+                        }}>
+                          <Icon name="search" size={18} color="#666" />
+                          <input
+                            type="text"
+                            placeholder="Search trending products..."
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: '#fff',
+                              fontSize: 14,
+                              outline: 'none',
+                              width: '100%'
+                            }}
+                          />
+                          <Icon name="zap" size={18} color="#e8a849" />
+                        </div>
+                        
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: 20 }}>
+                          {categories.map(cat => (
+                            <button
+                              key={cat.id}
+                              onClick={() => setSelectedCategory(cat.id)}
+                              style={{
+                                padding: '8px 16px',
+                                border: `1px solid ${selectedCategory === cat.id ? '#e8a849' : '#222'}`,
+                                background: selectedCategory === cat.id ? 'rgba(232, 168, 73, 0.1)' : 'transparent',
+                                color: selectedCategory === cat.id ? '#e8a849' : '#888',
+                                fontSize: 13,
+                                borderRadius: 20
+                              }}
+                            >
+                              {cat.name}
+                            </button>
+                          ))}
+                        </div>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          {trendingProducts.map((product, i) => (
+                            <div key={i} className="card-hover" style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              padding: '16px',
+                              background: '#141414',
+                              borderRadius: 12,
+                              border: '1px solid #1f1f1f',
+                              cursor: 'pointer'
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                <div style={{
+                                  width: 44,
+                                  height: 44,
+                                  background: 'linear-gradient(135deg, #1f1f1f, #141414)',
+                                  borderRadius: 10,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  border: '1px solid #2a2a2a'
+                                }}>
+                                  <Icon name="package" size={20} color="#e8a849" />
+                                </div>
+                                <div>
+                                  <div style={{ fontWeight: 500, marginBottom: 2 }}>{product.name}</div>
+                                  <div style={{ fontSize: 12, color: '#666' }}>MOQ: {product.moq} units</div>
+                                </div>
+                              </div>
+                              <div style={{ textAlign: 'right' }}>
+                                <div style={{ color: '#4ade80', fontWeight: 600, fontSize: 14 }}>{product.margin} margin</div>
+                                <div style={{ fontSize: 12, color: '#888', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  <Icon name="trending" size={12} />
+                                  {product.trend} this month
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {activeTab === 'suppliers' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {suppliers.map((supplier, i) => (
+                          <div key={i} className="card-hover" style={{
+                            padding: '20px',
+                            background: '#141414',
+                            borderRadius: 12,
+                            border: '1px solid #1f1f1f',
+                            cursor: 'pointer'
+                          }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <span style={{ fontWeight: 600 }}>{supplier.name}</span>
+                                {supplier.verified && (
+                                  <span style={{
+                                    padding: '2px 8px',
+                                    background: 'rgba(74, 222, 128, 0.1)',
+                                    color: '#4ade80',
+                                    fontSize: 11,
+                                    borderRadius: 4,
+                                    fontWeight: 500
+                                  }}>Verified</span>
+                                )}
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <Icon name="star" size={14} fill="#e8a849" color="#e8a849" />
+                                <span style={{ fontWeight: 600 }}>{supplier.rating}</span>
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '20px', fontSize: 13, color: '#888' }}>
+                              <span>{supplier.specialty}</span>
+                              <span>•</span>
+                              <span>{supplier.orders} orders</span>
+                              <span>•</span>
+                              <span>Response: {supplier.response}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {activeTab === 'tools' && (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        {[
+                          { icon: 'lightbulb', name: 'Idea Generator', desc: 'AI-powered product ideas' },
+                          { icon: 'box', name: 'Prototype Builder', desc: 'Request samples fast' },
+                          { icon: 'fileText', name: 'Business Training', desc: '50+ video modules' },
+                          { icon: 'messageSquare', name: 'Supplier Chat', desc: 'Direct factory access' },
+                        ].map((tool, i) => (
+                          <div key={i} className="card-hover" style={{
+                            padding: '20px',
+                            background: '#141414',
+                            borderRadius: 12,
+                            border: '1px solid #1f1f1f',
+                            cursor: 'pointer'
+                          }}>
+                            <Icon name={tool.icon} size={24} color="#e8a849" />
+                            <div style={{ fontWeight: 600, marginBottom: 4, marginTop: 12 }}>{tool.name}</div>
+                            <div style={{ fontSize: 13, color: '#666' }}>{tool.desc}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* How It Works */}
+          <section style={{
+            padding: '80px 48px',
+            background: 'linear-gradient(180deg, #0a0a0a 0%, #0f0f0f 100%)',
+            borderTop: '1px solid #1a1a1a'
+          }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+              <div style={{ textAlign: 'center', marginBottom: 60 }}>
+                <h2 style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 40,
+                  fontWeight: 700,
+                  marginBottom: 16
+                }}>
+                  How <span className="gradient-text">SourcePro</span> Works
+                </h2>
+                <p style={{ color: '#666', fontSize: 16, maxWidth: 500, margin: '0 auto' }}>
+                  We act as your trusted middleman between you and verified Chinese factories
+                </p>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
+                {[
+                  { step: '01', icon: 'search', title: 'Discover Products', desc: 'Use our AI tools to find winning products with real margin data' },
+                  { step: '02', icon: 'users', title: 'Connect with Factories', desc: 'Access our vetted network of 500+ verified manufacturers' },
+                  { step: '03', icon: 'clipboard', title: 'We Negotiate & QC', desc: 'Our agents handle pricing, samples, and quality inspections' },
+                  { step: '04', icon: 'truck', title: 'Ship & Scale', desc: 'Door-to-door logistics with full tracking and support' },
+                ].map((item, i) => (
+                  <div key={i} className="card-hover" style={{
+                    padding: '32px 24px',
+                    background: 'linear-gradient(145deg, #141414, #0d0d0d)',
+                    borderRadius: 16,
+                    border: '1px solid #1f1f1f',
+                    position: 'relative'
+                  }}>
+                    <div style={{
+                      position: 'absolute',
+                      top: 20,
+                      right: 20,
+                      fontFamily: "'Playfair Display', serif",
+                      fontSize: 48,
+                      fontWeight: 700,
+                      color: 'rgba(232, 168, 73, 0.1)'
+                    }}>{item.step}</div>
+                    <div style={{
+                      width: 56,
+                      height: 56,
+                      background: 'rgba(232, 168, 73, 0.1)',
+                      borderRadius: 14,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: 20
+                    }}>
+                      <Icon name={item.icon} size={26} color="#e8a849" />
+                    </div>
+                    <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{item.title}</h3>
+                    <p style={{ fontSize: 14, color: '#666', lineHeight: 1.6 }}>{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* CTA */}
+          <section style={{
+            padding: '100px 48px',
+            textAlign: 'center',
+            borderTop: '1px solid #1a1a1a',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 600,
+              height: 600,
+              background: 'radial-gradient(circle, rgba(232, 168, 73, 0.08) 0%, transparent 60%)',
+              pointerEvents: 'none'
+            }} />
+            <div style={{ position: 'relative' }}>
+              <h2 style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: 48,
+                fontWeight: 700,
+                marginBottom: 20
+              }}>
+                Ready to Source <span className="gradient-text">Smarter</span>?
+              </h2>
+              <p style={{ color: '#666', fontSize: 18, marginBottom: 40, maxWidth: 500, margin: '0 auto 40px' }}>
+                Join 2,000+ businesses already using SourcePro to import from China with confidence.
+              </p>
+              <button onClick={() => navigate('onboarding')} className="shine" style={{
+                padding: '18px 40px',
+                background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+                border: 'none',
+                color: '#0a0a0a',
+                borderRadius: 12,
+                fontSize: 16,
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '10px'
+              }}>
+                Start Your Free Trial <Icon name="arrowRight" size={20} />
+              </button>
+            </div>
+          </section>
+
+          <Footer navigate={navigate} />
+        </div>
+      );
+    }
+    
+    // Suppliers Page
+    function SuppliersPage({ navigate, setSelectedSupplier }) {
+      const [selectedCategory, setSelectedCategory] = useState('all');
+      const [searchQuery, setSearchQuery] = useState('');
+      
+      const categories = [
+        { id: 'all', name: 'All Categories', count: 523 },
+        { id: 'electronics', name: 'Electronics', count: 156 },
+        { id: 'fashion', name: 'Fashion & Apparel', count: 98 },
+        { id: 'home', name: 'Home & Garden', count: 87 },
+        { id: 'beauty', name: 'Beauty & Personal Care', count: 64 },
+        { id: 'toys', name: 'Toys & Games', count: 52 },
+        { id: 'sports', name: 'Sports & Outdoor', count: 41 },
+        { id: 'auto', name: 'Auto Parts', count: 25 },
+      ];
+      
+      const suppliers = [
+        { id: 1, name: 'Shenzhen TechPro Electronics', rating: 4.9, orders: '2,400+', verified: true, response: '< 2 hours', specialty: 'Consumer Electronics', location: 'Shenzhen, Guangdong', minOrder: '$500', products: 1250, established: 2008, employees: '500+', certifications: ['ISO 9001', 'CE', 'RoHS', 'FCC'] },
+        { id: 2, name: 'Guangzhou Fashion Textiles Ltd', rating: 4.8, orders: '1,800+', verified: true, response: '< 4 hours', specialty: 'Apparel & Fabrics', location: 'Guangzhou, Guangdong', minOrder: '$300', products: 890, established: 2012, employees: '200+', certifications: ['BSCI', 'OEKO-TEX'] },
+        { id: 3, name: 'Yiwu HomeStyle Goods Co.', rating: 4.7, orders: '3,100+', verified: true, response: '< 1 hour', specialty: 'Home & Kitchen', location: 'Yiwu, Zhejiang', minOrder: '$200', products: 2100, established: 2005, employees: '300+', certifications: ['ISO 9001', 'FDA'] },
+        { id: 4, name: 'Dongguan Beauty Cosmetics', rating: 4.9, orders: '1,200+', verified: true, response: '< 3 hours', specialty: 'Beauty & Personal Care', location: 'Dongguan, Guangdong', minOrder: '$400', products: 650, established: 2015, employees: '150+', certifications: ['GMP', 'FDA', 'ISO 22716'] },
+        { id: 5, name: 'Ningbo Sports Equipment', rating: 4.6, orders: '950+', verified: true, response: '< 6 hours', specialty: 'Sports & Outdoor', location: 'Ningbo, Zhejiang', minOrder: '$600', products: 420, established: 2010, employees: '180+', certifications: ['ISO 9001', 'CE'] },
+        { id: 6, name: 'Hangzhou Smart Devices', rating: 4.8, orders: '1,600+', verified: true, response: '< 2 hours', specialty: 'Smart Home & IoT', location: 'Hangzhou, Zhejiang', minOrder: '$800', products: 380, established: 2016, employees: '250+', certifications: ['ISO 9001', 'CE', 'FCC', 'RoHS'] },
+      ];
+      
+      return (
+        <div style={{ minHeight: '100vh' }}>
+          <Navigation navigate={navigate} currentPage="suppliers" />
+          
+          {/* Hero */}
+          <section style={{ padding: '60px 48px 40px', borderBottom: '1px solid #1a1a1a' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+              <h1 style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: 48,
+                fontWeight: 700,
+                marginBottom: 16
+              }}>
+                Verified <span className="gradient-text">Supplier Network</span>
+              </h1>
+              <p style={{ color: '#888', fontSize: 18, maxWidth: 600 }}>
+                Access 500+ pre-vetted factories across China. Every supplier is verified through our rigorous 50-point inspection process.
+              </p>
+            </div>
+          </section>
+          
+          {/* Search & Filters */}
+          <section style={{ padding: '32px 48px', borderBottom: '1px solid #1a1a1a' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+              <div style={{ display: 'flex', gap: 16 }}>
+                <div style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '14px 20px',
+                  background: '#141414',
+                  borderRadius: 12,
+                  border: '1px solid #222'
+                }}>
+                  <Icon name="search" size={20} color="#666" />
+                  <input
+                    type="text"
+                    placeholder="Search suppliers by name, product, or specialty..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#fff',
+                      fontSize: 15,
+                      outline: 'none',
+                      width: '100%'
+                    }}
+                  />
+                </div>
+                <button style={{
+                  padding: '14px 24px',
+                  background: '#141414',
+                  border: '1px solid #222',
+                  borderRadius: 12,
+                  color: '#888',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 14
+                }}>
+                  <Icon name="filter" size={18} /> Filters
+                </button>
+                <button style={{
+                  padding: '14px 24px',
+                  background: '#141414',
+                  border: '1px solid #222',
+                  borderRadius: 12,
+                  color: '#888',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 14
+                }}>
+                  Sort: Rating <Icon name="chevronDown" size={16} />
+                </button>
+              </div>
+            </div>
+          </section>
+          
+          {/* Main Content */}
+          <section style={{ padding: '48px' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', gap: 32 }}>
+              {/* Sidebar Categories */}
+              <div style={{ width: 260, flexShrink: 0 }}>
+                <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: '#888' }}>CATEGORIES</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {categories.map(cat => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setSelectedCategory(cat.id)}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '12px 16px',
+                        background: selectedCategory === cat.id ? 'rgba(232, 168, 73, 0.1)' : 'transparent',
+                        border: 'none',
+                        borderRadius: 10,
+                        color: selectedCategory === cat.id ? '#e8a849' : '#888',
+                        fontSize: 14,
+                        textAlign: 'left'
+                      }}
+                    >
+                      <span>{cat.name}</span>
+                      <span style={{ 
+                        fontSize: 12, 
+                        background: selectedCategory === cat.id ? 'rgba(232, 168, 73, 0.2)' : '#1a1a1a',
+                        padding: '2px 8px',
+                        borderRadius: 10
+                      }}>{cat.count}</span>
+                    </button>
+                  ))}
+                </div>
+                
+                <div style={{ marginTop: 32, padding: 20, background: '#141414', borderRadius: 16, border: '1px solid #1f1f1f' }}>
+                  <h4 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Can't find what you need?</h4>
+                  <p style={{ fontSize: 13, color: '#666', marginBottom: 16, lineHeight: 1.6 }}>
+                    Our sourcing agents can help you find the perfect supplier for any product.
+                  </p>
+                  <button style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+                    border: 'none',
+                    borderRadius: 8,
+                    color: '#0a0a0a',
+                    fontWeight: 600,
+                    fontSize: 13
+                  }}>
+                    Request Custom Sourcing
+                  </button>
+                </div>
+              </div>
+              
+              {/* Supplier Grid */}
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                  <span style={{ color: '#888', fontSize: 14 }}>Showing {suppliers.length} verified suppliers</span>
+                </div>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  {suppliers.map(supplier => (
+                    <div 
+                      key={supplier.id} 
+                      className="card-hover"
+                      onClick={() => { setSelectedSupplier(supplier); navigate('supplier'); }}
+                      style={{
+                        padding: '24px',
+                        background: '#141414',
+                        borderRadius: 16,
+                        border: '1px solid #1f1f1f',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <div style={{ display: 'flex', gap: 20 }}>
+                        <div style={{
+                          width: 80,
+                          height: 80,
+                          background: 'linear-gradient(135deg, #1f1f1f, #141414)',
+                          borderRadius: 16,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: '1px solid #2a2a2a',
+                          fontSize: 36
+                        }}>
+                          🏭
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                                <h3 style={{ fontSize: 18, fontWeight: 600 }}>{supplier.name}</h3>
+                                {supplier.verified && (
+                                  <span style={{
+                                    padding: '3px 10px',
+                                    background: 'rgba(74, 222, 128, 0.1)',
+                                    color: '#4ade80',
+                                    fontSize: 11,
+                                    borderRadius: 4,
+                                    fontWeight: 500,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 4
+                                  }}>
+                                    <Icon name="shield" size={12} /> Verified
+                                  </span>
+                                )}
+                              </div>
+                              <p style={{ color: '#888', fontSize: 14 }}>{supplier.specialty} • {supplier.location}</p>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <Icon name="star" size={18} fill="#e8a849" color="#e8a849" />
+                              <span style={{ fontSize: 18, fontWeight: 600 }}>{supplier.rating}</span>
+                            </div>
+                          </div>
+                          
+                          <div style={{ display: 'flex', gap: 24, marginTop: 16 }}>
+                            {[
+                              { label: 'Orders', value: supplier.orders },
+                              { label: 'Products', value: supplier.products },
+                              { label: 'Min Order', value: supplier.minOrder },
+                              { label: 'Response', value: supplier.response },
+                              { label: 'Est.', value: supplier.established },
+                            ].map((stat, i) => (
+                              <div key={i}>
+                                <div style={{ fontSize: 14, fontWeight: 600 }}>{stat.value}</div>
+                                <div style={{ fontSize: 11, color: '#666' }}>{stat.label}</div>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+                            {supplier.certifications.slice(0, 4).map((cert, i) => (
+                              <span key={i} style={{
+                                padding: '4px 10px',
+                                background: '#1a1a1a',
+                                borderRadius: 6,
+                                fontSize: 11,
+                                color: '#888'
+                              }}>{cert}</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+          
+          <Footer navigate={navigate} />
+        </div>
+      );
+    }
+    
+    // Services Page
+    function ServicesPage({ navigate }) {
+      const services = [
+        {
+          icon: 'search',
+          title: 'Product Sourcing',
+          description: 'Tell us what you need and we\'ll find the best factories. We handle supplier discovery, vetting, and initial negotiations.',
+          features: ['Factory research & matching', 'Supplier verification', 'Initial price negotiation', 'Multiple quotes comparison'],
+          price: 'From $99',
+          popular: false
+        },
+        {
+          icon: 'messageSquare',
+          title: 'Negotiation Agent',
+          description: 'Our bilingual agents negotiate on your behalf to get you the best prices, terms, and MOQs from factories.',
+          features: ['Price negotiation', 'Payment terms optimization', 'MOQ reduction', 'Contract review'],
+          price: 'From $149',
+          popular: true
+        },
+        {
+          icon: 'clipboard',
+          title: 'Quality Inspection',
+          description: 'On-site factory inspections before shipment. We check your products meet your specifications and quality standards.',
+          features: ['Pre-production inspection', 'During production check', 'Pre-shipment inspection', 'Detailed photo reports'],
+          price: 'From $199',
+          popular: false
+        },
+        {
+          icon: 'box',
+          title: 'Sample Management',
+          description: 'We handle the entire sample process - ordering, inspection, consolidation, and shipping to your location.',
+          features: ['Sample ordering', 'Quality verification', 'Consolidation & shipping', 'Modification requests'],
+          price: 'From $79',
+          popular: false
+        },
+        {
+          icon: 'truck',
+          title: 'Logistics & Shipping',
+          description: 'End-to-end freight management from factory to your door. Sea, air, or express - we handle it all.',
+          features: ['Freight forwarding', 'Customs clearance', 'Door-to-door delivery', 'Real-time tracking'],
+          price: 'Custom quote',
+          popular: false
+        },
+        {
+          icon: 'shield',
+          title: 'Supplier Audit',
+          description: 'Comprehensive factory audits to verify capabilities, compliance, and legitimacy before you commit.',
+          features: ['On-site factory visit', 'Capability assessment', 'Compliance verification', 'Detailed audit report'],
+          price: 'From $399',
+          popular: false
+        },
+      ];
+      
+      return (
+        <div style={{ minHeight: '100vh' }}>
+          <Navigation navigate={navigate} currentPage="services" />
+          
+          {/* Hero */}
+          <section style={{ padding: '80px 48px', textAlign: 'center', borderBottom: '1px solid #1a1a1a' }}>
+            <div style={{ maxWidth: 800, margin: '0 auto' }}>
+              <h1 style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: 52,
+                fontWeight: 700,
+                marginBottom: 20
+              }}>
+                Full-Service <span className="gradient-text">Sourcing Solutions</span>
+              </h1>
+              <p style={{ color: '#888', fontSize: 18, lineHeight: 1.7 }}>
+                From finding factories to delivering products to your door - we handle every step of the sourcing process so you can focus on growing your business.
+              </p>
+            </div>
+          </section>
+          
+          {/* Services Grid */}
+          <section style={{ padding: '80px 48px' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+                {services.map((service, i) => (
+                  <div 
+                    key={i} 
+                    className={service.popular ? 'glow-border' : ''}
+                    style={{
+                      padding: '32px',
+                      background: service.popular 
+                        ? 'linear-gradient(145deg, #1a1a1a, #111)' 
+                        : 'linear-gradient(145deg, #141414, #0d0d0d)',
+                      borderRadius: 20,
+                      border: `1px solid ${service.popular ? '#e8a849' : '#1f1f1f'}`,
+                      position: 'relative'
+                    }}
+                  >
+                    {service.popular && (
+                      <div style={{
+                        position: 'absolute',
+                        top: -12,
+                        right: 24,
+                        padding: '4px 12px',
+                        background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+                        color: '#0a0a0a',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        borderRadius: 20
+                      }}>Most Popular</div>
+                    )}
+                    
+                    <div style={{
+                      width: 56,
+                      height: 56,
+                      background: 'rgba(232, 168, 73, 0.1)',
+                      borderRadius: 14,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: 20
+                    }}>
+                      <Icon name={service.icon} size={28} color="#e8a849" />
+                    </div>
+                    
+                    <h3 style={{ fontSize: 22, fontWeight: 600, marginBottom: 12 }}>{service.title}</h3>
+                    <p style={{ color: '#888', fontSize: 14, lineHeight: 1.7, marginBottom: 24 }}>{service.description}</p>
+                    
+                    <div style={{ marginBottom: 24 }}>
+                      {service.features.map((feature, j) => (
+                        <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                          <Icon name="check" size={16} color="#4ade80" />
+                          <span style={{ fontSize: 14, color: '#ccc' }}>{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div style={{ borderTop: '1px solid #222', paddingTop: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 20, fontWeight: 600 }}>{service.price}</span>
+                      <button style={{
+                        padding: '10px 20px',
+                        background: service.popular 
+                          ? 'linear-gradient(135deg, #e8a849, #d4943a)' 
+                          : 'transparent',
+                        border: service.popular ? 'none' : '1px solid #333',
+                        color: service.popular ? '#0a0a0a' : '#fff',
+                        borderRadius: 8,
+                        fontSize: 13,
+                        fontWeight: 600
+                      }}>
+                        Get Started
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+          
+          {/* Process */}
+          <section style={{ padding: '80px 48px', background: '#0d0d0d', borderTop: '1px solid #1a1a1a' }}>
+            <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+              <div style={{ textAlign: 'center', marginBottom: 60 }}>
+                <h2 style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 40,
+                  fontWeight: 700,
+                  marginBottom: 16
+                }}>
+                  How Our <span className="gradient-text">Services Work</span>
+                </h2>
+                <p style={{ color: '#666', fontSize: 16 }}>A simple, transparent process from start to finish</p>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                {[
+                  { step: 1, title: 'Submit Your Request', desc: 'Tell us what you need - product details, quantities, quality requirements, and timeline.' },
+                  { step: 2, title: 'We Get to Work', desc: 'Our team researches, negotiates, and manages everything on your behalf.' },
+                  { step: 3, title: 'Review & Approve', desc: 'We present options, reports, and recommendations. You make the final decisions.' },
+                  { step: 4, title: 'Delivery & Support', desc: 'We oversee production, quality, and logistics until products reach you.' },
+                ].map((item, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <div style={{
+                        width: 48,
+                        height: 48,
+                        background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 700,
+                        color: '#0a0a0a',
+                        fontSize: 18
+                      }}>{item.step}</div>
+                      {i < 3 && <div style={{ width: 2, height: 60, background: '#222', margin: '8px 0' }} />}
+                    </div>
+                    <div style={{ paddingBottom: i < 3 ? 40 : 0 }}>
+                      <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>{item.title}</h3>
+                      <p style={{ color: '#888', fontSize: 15, lineHeight: 1.6 }}>{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+          
+          {/* CTA */}
+          <section style={{ padding: '80px 48px', textAlign: 'center', borderTop: '1px solid #1a1a1a' }}>
+            <h2 style={{ fontSize: 32, fontWeight: 600, marginBottom: 16 }}>Need a Custom Solution?</h2>
+            <p style={{ color: '#888', fontSize: 16, marginBottom: 32 }}>
+              Our team can create a tailored sourcing package for your specific needs.
+            </p>
+            <button onClick={() => navigate('onboarding')} style={{
+              padding: '16px 32px',
+              background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+              border: 'none',
+              color: '#0a0a0a',
+              borderRadius: 10,
+              fontSize: 15,
+              fontWeight: 600
+            }}>
+              Contact Our Team
+            </button>
+          </section>
+          
+          <Footer navigate={navigate} />
+        </div>
+      );
+    }
+    
+    // Training Page
+    function TrainingPage({ navigate }) {
+      const courses = [
+        { title: 'Sourcing Fundamentals', lessons: 12, duration: '2 hours', level: 'Beginner', icon: '📚' },
+        { title: 'Finding Winning Products', lessons: 8, duration: '1.5 hours', level: 'Beginner', icon: '🎯' },
+        { title: 'Supplier Negotiation Mastery', lessons: 15, duration: '3 hours', level: 'Intermediate', icon: '🤝' },
+        { title: 'Quality Control Essentials', lessons: 10, duration: '2 hours', level: 'Intermediate', icon: '✅' },
+        { title: 'Import/Export Regulations', lessons: 8, duration: '1.5 hours', level: 'Intermediate', icon: '📋' },
+        { title: 'Scaling Your Import Business', lessons: 12, duration: '2.5 hours', level: 'Advanced', icon: '🚀' },
+      ];
+      
+      const features = [
+        { icon: 'video', title: '50+ Video Lessons', desc: 'HD video content with practical examples' },
+        { icon: 'fileText', title: 'Downloadable Resources', desc: 'Templates, checklists, and guides' },
+        { icon: 'users', title: 'Community Access', desc: 'Connect with 2,000+ importers' },
+        { icon: 'headphones', title: '1:1 Coaching Calls', desc: 'Personal guidance from experts' },
+        { icon: 'calendar', title: 'Live Q&A Sessions', desc: 'Weekly live sessions with mentors' },
+        { icon: 'award', title: 'Certification', desc: 'Earn your SourcePro certificate' },
+      ];
+      
+      return (
+        <div style={{ minHeight: '100vh' }}>
+          <Navigation navigate={navigate} currentPage="training" />
+          
+          {/* Hero */}
+          <section style={{ padding: '80px 48px', borderBottom: '1px solid #1a1a1a' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', gap: 80, alignItems: 'center' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '6px 14px',
+                  background: 'rgba(232, 168, 73, 0.1)',
+                  borderRadius: 20,
+                  marginBottom: 24,
+                  border: '1px solid rgba(232, 168, 73, 0.2)'
+                }}>
+                  <Icon name="book" size={14} color="#e8a849" />
+                  <span style={{ fontSize: 13, color: '#e8a849' }}>SourcePro Academy</span>
+                </div>
+                
+                <h1 style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 52,
+                  fontWeight: 700,
+                  marginBottom: 20,
+                  lineHeight: 1.1
+                }}>
+                  Master the Art of <span className="gradient-text">China Sourcing</span>
+                </h1>
+                <p style={{ color: '#888', fontSize: 18, lineHeight: 1.7, marginBottom: 32 }}>
+                  Learn everything from finding products to scaling your import business. Our comprehensive training program has helped 2,000+ entrepreneurs build successful sourcing operations.
+                </p>
+                
+                <div style={{ display: 'flex', gap: 16 }}>
+                  <button onClick={() => navigate('onboarding')} style={{
+                    padding: '16px 32px',
+                    background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+                    border: 'none',
+                    color: '#0a0a0a',
+                    borderRadius: 10,
+                    fontSize: 15,
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8
+                  }}>
+                    Start Learning Free <Icon name="arrowRight" size={18} />
+                  </button>
+                  <button style={{
+                    padding: '16px 32px',
+                    background: 'transparent',
+                    border: '1px solid #333',
+                    color: '#fff',
+                    borderRadius: 10,
+                    fontSize: 15,
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8
+                  }}>
+                    <Icon name="play" size={16} fill="#fff" color="#fff" /> Preview Course
+                  </button>
+                </div>
+              </div>
+              
+              <div style={{ flex: 1 }}>
+                <div style={{
+                  background: '#141414',
+                  borderRadius: 20,
+                  padding: 32,
+                  border: '1px solid #1f1f1f'
+                }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                    {[
+                      { value: '50+', label: 'Video Lessons' },
+                      { value: '12+', label: 'Hours Content' },
+                      { value: '2,000+', label: 'Students' },
+                      { value: '4.9', label: 'Rating' },
+                    ].map((stat, i) => (
+                      <div key={i} style={{ textAlign: 'center', padding: 20, background: '#1a1a1a', borderRadius: 12 }}>
+                        <div style={{ fontSize: 32, fontWeight: 700 }} className="gradient-text">{stat.value}</div>
+                        <div style={{ fontSize: 13, color: '#666' }}>{stat.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          
+          {/* Courses */}
+          <section style={{ padding: '80px 48px' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+              <div style={{ textAlign: 'center', marginBottom: 60 }}>
+                <h2 style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 40,
+                  fontWeight: 700,
+                  marginBottom: 16
+                }}>
+                  Course <span className="gradient-text">Curriculum</span>
+                </h2>
+                <p style={{ color: '#666', fontSize: 16 }}>A structured learning path from beginner to expert</p>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+                {courses.map((course, i) => (
+                  <div key={i} className="card-hover" style={{
+                    padding: '28px',
+                    background: '#141414',
+                    borderRadius: 16,
+                    border: '1px solid #1f1f1f',
+                    cursor: 'pointer'
+                  }}>
+                    <div style={{ fontSize: 40, marginBottom: 16 }}>{course.icon}</div>
+                    <span style={{
+                      padding: '4px 10px',
+                      background: course.level === 'Beginner' ? 'rgba(74, 222, 128, 0.1)' : course.level === 'Intermediate' ? 'rgba(232, 168, 73, 0.1)' : 'rgba(129, 140, 248, 0.1)',
+                      color: course.level === 'Beginner' ? '#4ade80' : course.level === 'Intermediate' ? '#e8a849' : '#818cf8',
+                      fontSize: 11,
+                      borderRadius: 4,
+                      fontWeight: 500
+                    }}>{course.level}</span>
+                    <h3 style={{ fontSize: 18, fontWeight: 600, marginTop: 12, marginBottom: 8 }}>{course.title}</h3>
+                    <div style={{ display: 'flex', gap: 16, fontSize: 13, color: '#888' }}>
+                      <span>{course.lessons} lessons</span>
+                      <span>•</span>
+                      <span>{course.duration}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+          
+          {/* Features */}
+          <section style={{ padding: '80px 48px', background: '#0d0d0d', borderTop: '1px solid #1a1a1a' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+              <div style={{ textAlign: 'center', marginBottom: 60 }}>
+                <h2 style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 40,
+                  fontWeight: 700,
+                  marginBottom: 16
+                }}>
+                  What's <span className="gradient-text">Included</span>
+                </h2>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+                {features.map((feature, i) => (
+                  <div key={i} style={{
+                    padding: '28px',
+                    background: '#141414',
+                    borderRadius: 16,
+                    border: '1px solid #1f1f1f',
+                    display: 'flex',
+                    gap: 16
+                  }}>
+                    <div style={{
+                      width: 48,
+                      height: 48,
+                      background: 'rgba(232, 168, 73, 0.1)',
+                      borderRadius: 12,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}>
+                      <Icon name={feature.icon} size={24} color="#e8a849" />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>{feature.title}</h3>
+                      <p style={{ fontSize: 13, color: '#888' }}>{feature.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+          
+          {/* Testimonial */}
+          <section style={{ padding: '80px 48px', borderTop: '1px solid #1a1a1a' }}>
+            <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
+              <div style={{ fontSize: 48, marginBottom: 24 }}>💬</div>
+              <p style={{ fontSize: 24, fontStyle: 'italic', lineHeight: 1.6, marginBottom: 24, color: '#ccc' }}>
+                "SourcePro Academy completely transformed how I approach sourcing. Within 3 months of completing the course, I'd found a reliable factory and launched my first product line."
+              </p>
+              <div>
+                <div style={{ fontWeight: 600 }}>Sarah Chen</div>
+                <div style={{ fontSize: 14, color: '#888' }}>Founder, EcoHome Products</div>
+              </div>
+            </div>
+          </section>
+          
+          {/* CTA */}
+          <section style={{ padding: '80px 48px', textAlign: 'center', background: '#0d0d0d', borderTop: '1px solid #1a1a1a' }}>
+            <h2 style={{ fontSize: 32, fontWeight: 600, marginBottom: 16 }}>Ready to Start Learning?</h2>
+            <p style={{ color: '#888', fontSize: 16, marginBottom: 32 }}>
+              Get instant access to all courses with your SourcePro membership.
+            </p>
+            <button onClick={() => navigate('pricing')} style={{
+              padding: '16px 32px',
+              background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+              border: 'none',
+              color: '#0a0a0a',
+              borderRadius: 10,
+              fontSize: 15,
+              fontWeight: 600
+            }}>
+              View Pricing Plans
+            </button>
+          </section>
+          
+          <Footer navigate={navigate} />
+        </div>
+      );
+    }
+    
+    // Pricing Page
+    function PricingPage({ navigate }) {
+      const [annual, setAnnual] = useState(true);
+      
+      const plans = [
+        {
+          name: 'Starter',
+          desc: 'Perfect for exploring and getting started',
+          monthlyPrice: 0,
+          annualPrice: 0,
+          features: [
+            'Product discovery tools',
+            'Basic supplier search',
+            'Community access',
+            '5 supplier contacts/month',
+            'Basic training modules',
+          ],
+          limitations: [
+            'No agent services',
+            'No quality inspections',
+            'Limited support',
+          ],
+          cta: 'Get Started Free',
+          featured: false
+        },
+        {
+          name: 'Pro',
+          desc: 'For serious importers ready to scale',
+          monthlyPrice: 97,
+          annualPrice: 79,
+          features: [
+            'Everything in Starter',
+            'Unlimited supplier contacts',
+            'Agent negotiation service',
+            '3 quality inspections/month',
+            'Full training academy access',
+            'Priority email support',
+            'Sample management',
+          ],
+          limitations: [],
+          cta: 'Start 14-Day Free Trial',
+          featured: true
+        },
+        {
+          name: 'Scale',
+          desc: 'For established businesses with volume',
+          monthlyPrice: 297,
+          annualPrice: 249,
+          features: [
+            'Everything in Pro',
+            'Dedicated account manager',
+            'Unlimited QC inspections',
+            '1:1 coaching calls (monthly)',
+            'White-glove logistics',
+            'Custom supplier sourcing',
+            'Priority phone support',
+            'API access',
+          ],
+          limitations: [],
+          cta: 'Contact Sales',
+          featured: false
+        },
+      ];
+      
+      const faqs = [
+        { q: 'Can I cancel anytime?', a: 'Yes, you can cancel your subscription at any time. If you cancel, you\'ll retain access until the end of your billing period.' },
+        { q: 'What payment methods do you accept?', a: 'We accept all major credit cards (Visa, MasterCard, American Express), PayPal, and bank transfers for annual plans.' },
+        { q: 'Is there a free trial?', a: 'Yes! Pro and Scale plans include a 14-day free trial. No credit card required to start.' },
+        { q: 'Can I upgrade or downgrade?', a: 'Absolutely. You can change your plan at any time. Upgrades are effective immediately, and we\'ll prorate the difference.' },
+        { q: 'Do you offer refunds?', a: 'We offer a 30-day money-back guarantee for all paid plans. If you\'re not satisfied, contact us for a full refund.' },
+      ];
+      
+      return (
+        <div style={{ minHeight: '100vh' }}>
+          <Navigation navigate={navigate} currentPage="pricing" />
+          
+          {/* Hero */}
+          <section style={{ padding: '80px 48px 60px', textAlign: 'center' }}>
+            <div style={{ maxWidth: 800, margin: '0 auto' }}>
+              <h1 style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: 52,
+                fontWeight: 700,
+                marginBottom: 20
+              }}>
+                Simple, Transparent <span className="gradient-text">Pricing</span>
+              </h1>
+              <p style={{ color: '#888', fontSize: 18, marginBottom: 40 }}>
+                Start free, upgrade when you're ready. No hidden fees, no surprises.
+              </p>
+              
+              {/* Toggle */}
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 16, padding: '6px', background: '#141414', borderRadius: 12 }}>
+                <button 
+                  onClick={() => setAnnual(false)}
+                  style={{
+                    padding: '10px 20px',
+                    background: !annual ? '#e8a849' : 'transparent',
+                    border: 'none',
+                    borderRadius: 8,
+                    color: !annual ? '#0a0a0a' : '#888',
+                    fontWeight: 500,
+                    fontSize: 14
+                  }}
+                >
+                  Monthly
+                </button>
+                <button 
+                  onClick={() => setAnnual(true)}
+                  style={{
+                    padding: '10px 20px',
+                    background: annual ? '#e8a849' : 'transparent',
+                    border: 'none',
+                    borderRadius: 8,
+                    color: annual ? '#0a0a0a' : '#888',
+                    fontWeight: 500,
+                    fontSize: 14,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8
+                  }}
+                >
+                  Annual <span style={{ 
+                    background: annual ? '#0a0a0a' : '#333', 
+                    color: annual ? '#e8a849' : '#888',
+                    padding: '2px 8px', 
+                    borderRadius: 4, 
+                    fontSize: 11 
+                  }}>Save 20%</span>
+                </button>
+              </div>
+            </div>
+          </section>
+          
+          {/* Plans */}
+          <section style={{ padding: '40px 48px 80px' }}>
+            <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24, alignItems: 'start' }}>
+                {plans.map((plan, i) => (
+                  <div 
+                    key={i} 
+                    className={plan.featured ? 'glow-border' : ''}
+                    style={{
+                      padding: '40px 32px',
+                      background: plan.featured 
+                        ? 'linear-gradient(145deg, #1a1a1a, #111)' 
+                        : 'linear-gradient(145deg, #141414, #0d0d0d)',
+                      borderRadius: 24,
+                      border: `1px solid ${plan.featured ? '#e8a849' : '#1f1f1f'}`,
+                      position: 'relative',
+                      transform: plan.featured ? 'scale(1.05)' : 'none',
+                      zIndex: plan.featured ? 1 : 0
+                    }}
+                  >
+                    {plan.featured && (
+                      <div style={{
+                        position: 'absolute',
+                        top: -12,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        padding: '6px 16px',
+                        background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+                        color: '#0a0a0a',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        borderRadius: 20
+                      }}>Most Popular</div>
+                    )}
+                    
+                    <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 8 }}>{plan.name}</h3>
+                    <p style={{ color: '#888', fontSize: 14, marginBottom: 24 }}>{plan.desc}</p>
+                    
+                    <div style={{ marginBottom: 32 }}>
+                      <span style={{ fontSize: 56, fontWeight: 700 }}>
+                        ${annual ? plan.annualPrice : plan.monthlyPrice}
+                      </span>
+                      <span style={{ color: '#666', fontSize: 16 }}>/month</span>
+                      {annual && plan.annualPrice > 0 && (
+                        <div style={{ fontSize: 13, color: '#4ade80', marginTop: 4 }}>
+                          Billed annually (${plan.annualPrice * 12}/year)
+                        </div>
+                      )}
+                    </div>
+                    
+                    <button onClick={() => navigate('onboarding')} style={{
+                      width: '100%',
+                      padding: '16px',
+                      background: plan.featured 
+                        ? 'linear-gradient(135deg, #e8a849, #d4943a)' 
+                        : 'rgba(255,255,255,0.05)',
+                      border: plan.featured ? 'none' : '1px solid #333',
+                      color: plan.featured ? '#0a0a0a' : '#fff',
+                      borderRadius: 12,
+                      fontSize: 15,
+                      fontWeight: 600,
+                      marginBottom: 32
+                    }}>
+                      {plan.cta}
+                    </button>
+                    
+                    <div style={{ marginBottom: 24 }}>
+                      <div style={{ fontSize: 12, color: '#888', marginBottom: 12, fontWeight: 600 }}>WHAT'S INCLUDED</div>
+                      {plan.features.map((feature, j) => (
+                        <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                          <Icon name="check" size={16} color="#4ade80" />
+                          <span style={{ fontSize: 14, color: '#ccc' }}>{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {plan.limitations.length > 0 && (
+                      <div>
+                        <div style={{ fontSize: 12, color: '#888', marginBottom: 12, fontWeight: 600 }}>LIMITATIONS</div>
+                        {plan.limitations.map((limitation, j) => (
+                          <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                            <Icon name="x" size={16} color="#666" />
+                            <span style={{ fontSize: 14, color: '#666' }}>{limitation}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+          
+          {/* Enterprise */}
+          <section style={{ padding: '60px 48px', background: '#0d0d0d', borderTop: '1px solid #1a1a1a' }}>
+            <div style={{ 
+              maxWidth: 1000, 
+              margin: '0 auto', 
+              padding: '48px',
+              background: 'linear-gradient(145deg, #141414, #0d0d0d)',
+              borderRadius: 24,
+              border: '1px solid #1f1f1f',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div>
+                <h3 style={{ fontSize: 28, fontWeight: 600, marginBottom: 8 }}>Enterprise Solutions</h3>
+                <p style={{ color: '#888', fontSize: 16 }}>
+                  Custom plans for large teams and high-volume importers. Get dedicated support, custom integrations, and volume discounts.
+                </p>
+              </div>
+              <button style={{
+                padding: '16px 32px',
+                background: 'transparent',
+                border: '1px solid #e8a849',
+                color: '#e8a849',
+                borderRadius: 10,
+                fontSize: 15,
+                fontWeight: 600,
+                whiteSpace: 'nowrap'
+              }}>
+                Contact Sales
+              </button>
+            </div>
+          </section>
+          
+          {/* FAQs */}
+          <section style={{ padding: '80px 48px', borderTop: '1px solid #1a1a1a' }}>
+            <div style={{ maxWidth: 800, margin: '0 auto' }}>
+              <div style={{ textAlign: 'center', marginBottom: 60 }}>
+                <h2 style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 40,
+                  fontWeight: 700,
+                  marginBottom: 16
+                }}>
+                  Frequently Asked <span className="gradient-text">Questions</span>
+                </h2>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {faqs.map((faq, i) => (
+                  <div key={i} style={{
+                    padding: '24px',
+                    background: '#141414',
+                    borderRadius: 16,
+                    border: '1px solid #1f1f1f'
+                  }}>
+                    <h4 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>{faq.q}</h4>
+                    <p style={{ color: '#888', fontSize: 14, lineHeight: 1.7 }}>{faq.a}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+          
+          <Footer navigate={navigate} />
+        </div>
+      );
+    }
+    
+    // About Page
+    function AboutPage({ navigate }) {
+      const team = [
+        { name: 'James Chen', role: 'Founder & CEO', bio: '15 years in China trade', image: '👨‍💼' },
+        { name: 'Sarah Liu', role: 'Head of Operations', bio: 'Former Alibaba', image: '👩‍💼' },
+        { name: 'Michael Wong', role: 'Head of Quality', bio: 'Ex-SGS inspector', image: '👨‍🔬' },
+        { name: 'Emily Zhang', role: 'Customer Success', bio: 'Sourcing expert', image: '👩‍💻' },
+      ];
+      
+      const values = [
+        { icon: 'shield', title: 'Trust & Transparency', desc: 'We believe in complete transparency. No hidden fees, no surprises. We show you exactly what you\'re paying for.' },
+        { icon: 'users', title: 'Partnership Mindset', desc: 'We\'re not just a service provider - we\'re your partner in growth. Your success is our success.' },
+        { icon: 'target', title: 'Quality First', desc: 'We never compromise on quality. Every supplier in our network passes our rigorous 50-point verification.' },
+        { icon: 'zap', title: 'Innovation', desc: 'We continuously improve our tools and processes to give you the edge in global sourcing.' },
+      ];
+      
+      const stats = [
+        { value: '500+', label: 'Verified Suppliers' },
+        { value: '2,000+', label: 'Happy Customers' },
+        { value: '$15M+', label: 'Products Sourced' },
+        { value: '98%', label: 'Satisfaction Rate' },
+      ];
+      
+      return (
+        <div style={{ minHeight: '100vh' }}>
+          <Navigation navigate={navigate} currentPage="about" />
+          
+          {/* Hero */}
+          <section style={{ padding: '100px 48px', textAlign: 'center', borderBottom: '1px solid #1a1a1a', position: 'relative', overflow: 'hidden' }}>
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 800,
+              height: 800,
+              background: 'radial-gradient(circle, rgba(232, 168, 73, 0.06) 0%, transparent 60%)',
+              pointerEvents: 'none'
+            }} />
+            <div style={{ maxWidth: 800, margin: '0 auto', position: 'relative' }}>
+              <h1 style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: 56,
+                fontWeight: 700,
+                marginBottom: 24,
+                lineHeight: 1.1
+              }}>
+                Making Global Sourcing <span className="gradient-text">Accessible to Everyone</span>
+              </h1>
+              <p style={{ color: '#888', fontSize: 20, lineHeight: 1.7 }}>
+                We started SourcePro because we believe small and medium businesses deserve the same access to quality manufacturers that big corporations have. Our mission is to democratize global trade.
+              </p>
+            </div>
+          </section>
+          
+          {/* Stats */}
+          <section style={{ padding: '60px 48px', background: '#0d0d0d', borderBottom: '1px solid #1a1a1a' }}>
+            <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 32 }}>
+                {stats.map((stat, i) => (
+                  <div key={i} style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 48, fontWeight: 700 }} className="gradient-text">{stat.value}</div>
+                    <div style={{ fontSize: 14, color: '#888' }}>{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+          
+          {/* Story */}
+          <section style={{ padding: '100px 48px' }}>
+            <div style={{ maxWidth: 1000, margin: '0 auto', display: 'flex', gap: 80, alignItems: 'center' }}>
+              <div style={{ flex: 1 }}>
+                <h2 style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 40,
+                  fontWeight: 700,
+                  marginBottom: 24
+                }}>
+                  Our <span className="gradient-text">Story</span>
+                </h2>
+                <div style={{ color: '#888', fontSize: 16, lineHeight: 1.8 }}>
+                  <p style={{ marginBottom: 20 }}>
+                    SourcePro was founded in 2020 by a team of sourcing veterans who spent over a decade helping businesses navigate the complexities of importing from China.
+                  </p>
+                  <p style={{ marginBottom: 20 }}>
+                    We saw firsthand how small businesses struggled with finding reliable suppliers, negotiating fair prices, and ensuring quality - problems that big corporations solved with dedicated sourcing teams and on-the-ground presence in China.
+                  </p>
+                  <p>
+                    We built SourcePro to level the playing field. By combining technology with human expertise, we give every business access to our vetted supplier network, trained negotiation agents, and quality inspection services.
+                  </p>
+                </div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{
+                  background: '#141414',
+                  borderRadius: 24,
+                  padding: 48,
+                  border: '1px solid #1f1f1f',
+                  textAlign: 'center'
+                }}>
+                  <div style={{ fontSize: 80, marginBottom: 24 }}>🌏</div>
+                  <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 12 }}>Headquartered in Shenzhen</h3>
+                  <p style={{ color: '#888', fontSize: 14 }}>
+                    With teams in China, Australia, and the US to serve you globally.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+          
+          {/* Values */}
+          <section style={{ padding: '80px 48px', background: '#0d0d0d', borderTop: '1px solid #1a1a1a' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+              <div style={{ textAlign: 'center', marginBottom: 60 }}>
+                <h2 style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 40,
+                  fontWeight: 700,
+                  marginBottom: 16
+                }}>
+                  Our <span className="gradient-text">Values</span>
+                </h2>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 24 }}>
+                {values.map((value, i) => (
+                  <div key={i} style={{
+                    padding: '32px',
+                    background: '#141414',
+                    borderRadius: 20,
+                    border: '1px solid #1f1f1f',
+                    display: 'flex',
+                    gap: 20
+                  }}>
+                    <div style={{
+                      width: 56,
+                      height: 56,
+                      background: 'rgba(232, 168, 73, 0.1)',
+                      borderRadius: 14,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}>
+                      <Icon name={value.icon} size={28} color="#e8a849" />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>{value.title}</h3>
+                      <p style={{ color: '#888', fontSize: 14, lineHeight: 1.7 }}>{value.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+          
+          {/* Team */}
+          <section style={{ padding: '80px 48px', borderTop: '1px solid #1a1a1a' }}>
+            <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+              <div style={{ textAlign: 'center', marginBottom: 60 }}>
+                <h2 style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 40,
+                  fontWeight: 700,
+                  marginBottom: 16
+                }}>
+                  Meet the <span className="gradient-text">Team</span>
+                </h2>
+                <p style={{ color: '#888', fontSize: 16 }}>Sourcing experts dedicated to your success</p>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24 }}>
+                {team.map((member, i) => (
+                  <div key={i} style={{
+                    padding: '32px 24px',
+                    background: '#141414',
+                    borderRadius: 20,
+                    border: '1px solid #1f1f1f',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ 
+                      fontSize: 64, 
+                      marginBottom: 16,
+                      width: 100,
+                      height: 100,
+                      background: '#1a1a1a',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: '0 auto 16px'
+                    }}>{member.image}</div>
+                    <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>{member.name}</h3>
+                    <p style={{ color: '#e8a849', fontSize: 13, marginBottom: 8 }}>{member.role}</p>
+                    <p style={{ color: '#666', fontSize: 13 }}>{member.bio}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+          
+          {/* CTA */}
+          <section style={{ padding: '100px 48px', textAlign: 'center', background: '#0d0d0d', borderTop: '1px solid #1a1a1a' }}>
+            <h2 style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: 40,
+              fontWeight: 700,
+              marginBottom: 20
+            }}>
+              Ready to Work <span className="gradient-text">Together</span>?
+            </h2>
+            <p style={{ color: '#888', fontSize: 18, marginBottom: 40, maxWidth: 500, margin: '0 auto 40px' }}>
+              Join thousands of businesses who trust SourcePro for their sourcing needs.
+            </p>
+            <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+              <button onClick={() => navigate('onboarding')} className="shine" style={{
+                padding: '18px 40px',
+                background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+                border: 'none',
+                color: '#0a0a0a',
+                borderRadius: 12,
+                fontSize: 16,
+                fontWeight: 600
+              }}>
+                Get Started Free
+              </button>
+              <button style={{
+                padding: '18px 40px',
+                background: 'transparent',
+                border: '1px solid #333',
+                color: '#fff',
+                borderRadius: 12,
+                fontSize: 16,
+                fontWeight: 500
+              }}>
+                Contact Us
+              </button>
+            </div>
+          </section>
+          
+          <Footer navigate={navigate} />
+        </div>
+      );
+    }
+    
+    // Onboarding Page
+    function OnboardingPage({ navigate, step, setStep }) {
+      const [formData, setFormData] = useState({
+        businessName: '',
+        industry: '',
+        experience: '',
+        goals: [],
+        budget: ''
+      });
+      
+      const industries = ['Fashion & Apparel', 'Electronics', 'Home & Garden', 'Beauty & Personal Care', 'Toys & Games', 'Sports & Outdoor', 'Other'];
+      const experiences = ['Just starting out', '1-2 years', '3-5 years', '5+ years'];
+      const goalOptions = ['Find winning products', 'Connect with factories', 'Reduce sourcing costs', 'Quality control', 'Business training'];
+      const budgets = ['< $1,000', '$1,000 - $5,000', '$5,000 - $20,000', '$20,000+'];
+      
+      const toggleGoal = (goal) => {
+        setFormData(prev => ({
+          ...prev,
+          goals: prev.goals.includes(goal) 
+            ? prev.goals.filter(g => g !== goal)
+            : [...prev.goals, goal]
+        }));
+      };
+      
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex' }}>
+          {/* Left Panel */}
+          <div style={{
+            width: 400,
+            background: 'linear-gradient(180deg, #141414 0%, #0a0a0a 100%)',
+            padding: '48px',
+            borderRight: '1px solid #1f1f1f',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 60, cursor: 'pointer' }} onClick={() => navigate('landing')}>
+              <div style={{
+                width: 36,
+                height: 36,
+                background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+                borderRadius: 8,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Icon name="globe" size={20} color="#0a0a0a" strokeWidth={2.5} />
+              </div>
+              <span style={{ fontSize: 20, fontWeight: 700 }}>
+                Source<span className="gradient-text">Pro</span>
+              </span>
+            </div>
+            
+            <div style={{ flex: 1 }}>
+              <h2 style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: 32,
+                fontWeight: 700,
+                marginBottom: 16,
+                lineHeight: 1.2
+              }}>
+                Let's set up your <span className="gradient-text">sourcing profile</span>
+              </h2>
+              <p style={{ color: '#666', lineHeight: 1.7 }}>
+                We'll personalize your experience based on your business needs and goals.
+              </p>
+            </div>
+            
+            {/* Progress */}
+            <div>
+              {[1, 2, 3, 4].map((s) => (
+                <div key={s} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  marginBottom: 16,
+                  opacity: s <= step ? 1 : 0.4
+                }}>
+                  <div style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    background: s < step ? '#4ade80' : s === step ? '#e8a849' : '#1f1f1f',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: s <= step ? '#0a0a0a' : '#666'
+                  }}>
+                    {s < step ? <Icon name="check" size={16} color="#0a0a0a" /> : s}
+                  </div>
+                  <span style={{ fontSize: 14, color: s === step ? '#fff' : '#666' }}>
+                    {s === 1 && 'Business Info'}
+                    {s === 2 && 'Experience'}
+                    {s === 3 && 'Goals'}
+                    {s === 4 && 'Budget'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Right Panel */}
+          <div style={{ flex: 1, padding: '48px 80px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ marginLeft: 'auto', marginBottom: 40 }}>
+              <button onClick={() => navigate('landing')} style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#666',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                fontSize: 14
+              }}>
+                <Icon name="x" size={18} /> Close
+              </button>
+            </div>
+            
+            <div style={{ flex: 1, maxWidth: 500 }} className="slide-in">
+              {step === 1 && (
+                <>
+                  <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 8 }}>Tell us about your business</h3>
+                  <p style={{ color: '#666', marginBottom: 32 }}>What's your business called and what industry are you in?</p>
+                  
+                  <div style={{ marginBottom: 24 }}>
+                    <label style={{ display: 'block', fontSize: 14, color: '#888', marginBottom: 8 }}>Business Name</label>
+                    <input
+                      type="text"
+                      value={formData.businessName}
+                      onChange={(e) => setFormData({...formData, businessName: e.target.value})}
+                      placeholder="Enter your business name"
+                      style={{
+                        width: '100%',
+                        padding: '16px',
+                        background: '#141414',
+                        border: '1px solid #222',
+                        borderRadius: 10,
+                        color: '#fff',
+                        fontSize: 15,
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label style={{ display: 'block', fontSize: 14, color: '#888', marginBottom: 8 }}>Industry</label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                      {industries.map(ind => (
+                        <button
+                          key={ind}
+                          onClick={() => setFormData({...formData, industry: ind})}
+                          style={{
+                            padding: '10px 18px',
+                            background: formData.industry === ind ? 'rgba(232, 168, 73, 0.1)' : '#141414',
+                            border: `1px solid ${formData.industry === ind ? '#e8a849' : '#222'}`,
+                            color: formData.industry === ind ? '#e8a849' : '#888',
+                            borderRadius: 8,
+                            fontSize: 14
+                          }}
+                        >
+                          {ind}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+              
+              {step === 2 && (
+                <>
+                  <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 8 }}>What's your sourcing experience?</h3>
+                  <p style={{ color: '#666', marginBottom: 32 }}>This helps us tailor our recommendations.</p>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {experiences.map(exp => (
+                      <button
+                        key={exp}
+                        onClick={() => setFormData({...formData, experience: exp})}
+                        style={{
+                          padding: '20px 24px',
+                          background: formData.experience === exp ? 'rgba(232, 168, 73, 0.1)' : '#141414',
+                          border: `1px solid ${formData.experience === exp ? '#e8a849' : '#222'}`,
+                          color: formData.experience === exp ? '#fff' : '#888',
+                          borderRadius: 12,
+                          fontSize: 15,
+                          textAlign: 'left',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        {exp}
+                        {formData.experience === exp && <Icon name="check" size={18} color="#4ade80" />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+              
+              {step === 3 && (
+                <>
+                  <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 8 }}>What are your main goals?</h3>
+                  <p style={{ color: '#666', marginBottom: 32 }}>Select all that apply.</p>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {goalOptions.map(goal => (
+                      <button
+                        key={goal}
+                        onClick={() => toggleGoal(goal)}
+                        style={{
+                          padding: '20px 24px',
+                          background: formData.goals.includes(goal) ? 'rgba(232, 168, 73, 0.1)' : '#141414',
+                          border: `1px solid ${formData.goals.includes(goal) ? '#e8a849' : '#222'}`,
+                          color: formData.goals.includes(goal) ? '#fff' : '#888',
+                          borderRadius: 12,
+                          fontSize: 15,
+                          textAlign: 'left',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        {goal}
+                        <div style={{
+                          width: 22,
+                          height: 22,
+                          borderRadius: 6,
+                          border: `2px solid ${formData.goals.includes(goal) ? '#4ade80' : '#333'}`,
+                          background: formData.goals.includes(goal) ? '#4ade80' : 'transparent',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          {formData.goals.includes(goal) && <Icon name="check" size={14} color="#0a0a0a" />}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+              
+              {step === 4 && (
+                <>
+                  <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 8 }}>What's your monthly budget?</h3>
+                  <p style={{ color: '#666', marginBottom: 32 }}>For product sourcing and orders.</p>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {budgets.map(budget => (
+                      <button
+                        key={budget}
+                        onClick={() => setFormData({...formData, budget: budget})}
+                        style={{
+                          padding: '20px 24px',
+                          background: formData.budget === budget ? 'rgba(232, 168, 73, 0.1)' : '#141414',
+                          border: `1px solid ${formData.budget === budget ? '#e8a849' : '#222'}`,
+                          color: formData.budget === budget ? '#fff' : '#888',
+                          borderRadius: 12,
+                          fontSize: 15,
+                          textAlign: 'left',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        {budget}
+                        {formData.budget === budget && <Icon name="check" size={18} color="#4ade80" />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+            
+            {/* Navigation */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 40 }}>
+              <button
+                onClick={() => step > 1 ? setStep(step - 1) : navigate('landing')}
+                style={{
+                  padding: '14px 28px',
+                  background: 'transparent',
+                  border: '1px solid #333',
+                  color: '#fff',
+                  borderRadius: 10,
+                  fontSize: 14,
+                  fontWeight: 500
+                }}
+              >
+                Back
+              </button>
+              <button
+                onClick={() => step < 4 ? setStep(step + 1) : navigate('dashboard')}
+                style={{
+                  padding: '14px 28px',
+                  background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+                  border: 'none',
+                  color: '#0a0a0a',
+                  borderRadius: 10,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8
+                }}
+              >
+                {step < 4 ? 'Continue' : 'Go to Dashboard'} <Icon name="arrowRight" size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    // Dashboard Page (simplified for brevity)
+    function DashboardPage({ navigate, setSelectedSupplier }) {
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 24 }}>
+          <div style={{ fontSize: 64 }}>🎉</div>
+          <h1 style={{ fontSize: 32, fontWeight: 600 }}>Welcome to Your Dashboard!</h1>
+          <p style={{ color: '#888' }}>Your sourcing command center is ready.</p>
+          <button onClick={() => navigate('landing')} style={{
+            padding: '14px 28px',
+            background: 'linear-gradient(135deg, #e8a849, #d4943a)',
+            border: 'none',
+            color: '#0a0a0a',
+            borderRadius: 10,
+            fontSize: 14,
+            fontWeight: 600
+          }}>
+            Back to Home
+          </button>
+        </div>
+      );
+    }
+    
+    // Supplier Detail Page (simplified)
+    function SupplierDetailPage({ navigate, supplier }) {
+      if (!supplier) supplier = { name: 'Sample Supplier', rating: 4.9, specialty: 'Electronics' };
+      
+      return (
+        <div style={{ minHeight: '100vh', padding: 48 }}>
+          <button onClick={() => navigate('suppliers')} style={{
+            background: 'transparent',
+            border: 'none',
+            color: '#888',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            marginBottom: 32
+          }}>
+            <Icon name="arrowRight" size={18} style={{ transform: 'rotate(180deg)' }} /> Back to Suppliers
+          </button>
+          
+          <div style={{ display: 'flex', gap: 24, alignItems: 'center', marginBottom: 32 }}>
+            <div style={{ fontSize: 64 }}>🏭</div>
+            <div>
+              <h1 style={{ fontSize: 32, fontWeight: 600 }}>{supplier.name}</h1>
+              <p style={{ color: '#888' }}>{supplier.specialty}</p>
+            </div>
+          </div>
+          
+          <div style={{ padding: 32, background: '#141414', borderRadius: 20, border: '1px solid #1f1f1f' }}>
+            <p style={{ color: '#888', lineHeight: 1.7 }}>
+              Full supplier details would appear here including products, certifications, contact options, and more.
+            </p>
+          </div>
+        </div>
+      );
+    }
+    
+    // Render the app
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
